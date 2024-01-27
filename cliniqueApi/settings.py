@@ -45,7 +45,9 @@ INSTALLED_APPS = [
     'api', 
     'users',
     'corsheaders',
-    'appointments'
+    'appointments' , 
+    'AppRequests' , 
+    'Record'
 ]
 
 MIDDLEWARE = [
