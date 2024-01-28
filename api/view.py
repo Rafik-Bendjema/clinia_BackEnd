@@ -54,7 +54,7 @@ def login(request):
     # You can add additional checks or validations here if needed
 
     # Return a success response
-    return Response("Login successful!", status=status.HTTP_200_OK)
+    return Response(user.role, status=status.HTTP_200_OK)
 
 
 #add appointment
@@ -125,7 +125,19 @@ def addAppointmentRequest(request):
     else:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
     
-
+@api_view(["POST"])
+def delelteRequest(request):
+            # Deleting an appointment request
+        request_id = request.data.get('id', None)
+        if request_id:
+            try:
+                appointment_request = AppRequests.objects.get(id=request_id)
+                appointment_request.delete()
+                return Response({"message": "Appointment request deleted successfully."}  , status=200)
+            except AppRequests.DoesNotExist:
+                return Response({"error": "Appointment request not found."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"error": "Request ID is required for deletion."}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(["POST"])
 def cancelAppointment(request):
@@ -151,6 +163,29 @@ def cancelAppointment(request):
     return Response({"message": "Appointment canceled successfully"} , status=200)
 
 
+@api_view(["POST"])
+def doneAppointment(request):
+    # Get the appointment ID from the request data
+    appointment_id = request.data.get('id')
+
+    if appointment_id is None:
+        return Response({"error": "Appointment ID is required"}, status=400)
+
+    # Retrieve the appointment instance
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+
+    # Check if the appointment is already canceled or completed
+    if appointment.status in ['canceled', 'completed']:
+        return Response({"error": "Appointment is already canceled or completed"}, status=400)
+
+    # Update the status to 'canceled'
+    appointment.status = 'completed'
+
+    # Save the changes to the database
+    appointment.save()
+
+    return Response({"message": "Appointment completed successfully"} , status=200)
+
 
 
 @api_view(["POST"])
@@ -165,10 +200,14 @@ def addMedicalRecord(request):
 @api_view(["POST"])
 def getMedicalRecords(request):
     if request.method == "POST":
-        patient_id = request.data.get('id', None)
+        patient_id = request.data.get('id')
         if patient_id:
             medical_records = MedicalRecord.objects.filter(patient=patient_id)
         else:
             medical_records = MedicalRecord.objects.all()
-        serializer = MedicalRecordSerializer(medical_records, many=True)
-        return Response(serializer.data)
+
+        if medical_records.exists():  # Check if queryset is not empty
+            serializer = MedicalRecordSerializer(medical_records, many=True)
+            return Response(serializer.data , status=200)
+        else:
+            return Response({"message": "No medical records found"}, status=status.HTTP_404_NOT_FOUND)

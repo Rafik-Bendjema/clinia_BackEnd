@@ -11,6 +11,8 @@ urlpatterns = [
     path("getRequests/" , view.getAppointmentsRequests) , 
     path("addRequest" , view.addAppointmentRequest) , 
     path("cancelAppointment/"  , view.cancelAppointment) , 
+    path("doneAppointment/"  , view.doneAppointment) , 
     path("getRecords/" , view.getMedicalRecords) , 
-    path("addRecord/" , view.addMedicalRecord)
+    path("addRecord/" , view.addMedicalRecord) , 
+    path("deleteRequest/" , view.delelteRequest)
 ]
